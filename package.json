@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "prebuild": "openapi --input ../discord-dungeon/discord-dungeon-website/generated-api-spec.json --output ./src/generated/discord-dungeon-api",
+    "generate": "openapi --input ../discord-dungeon/discord-dungeon-website/generated-api-spec.json --output ./src/generated/discord-dungeon-api",
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
