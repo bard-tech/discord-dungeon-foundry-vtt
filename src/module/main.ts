@@ -52,7 +52,7 @@ Hooks.on("dnd5e.rollSkill", async function(actor: Actor, roll: Roll, skillAbrev:
   
   console.log(`${actor.name} rolled a ${roll.total} on their ${skillAbrev} skill!`);
   const d20_roll = roll.dice[0].results.filter(d => d.discarded === undefined || !d.discarded)[0].result;
-  let check_action: DndAction = { AbilityCheck: { ability: fullSkillName(skillAbrev), total: roll.total!, d20_roll: d20_roll, character_name: actor.name!} };
+  const check_action: DndAction = { AbilityCheck: { ability: fullSkillName(skillAbrev), total: roll.total!, d20_roll: d20_roll, character_name: actor.name!} };
   await DiscordDungeonApi.postApiV1DndEvent({
     dnd_actions: [check_action]
   });
@@ -65,7 +65,7 @@ Hooks.on("dnd5e.rollAbilityTest", async function(actor: Actor, roll: Roll, skill
 
   console.log(`${actor.name} rolled a ${roll.total} on their ${skillAbrev} skill!`);
   const d20_roll = roll.dice[0].results.filter(d => d.discarded === undefined || !d.discarded)[0].result;
-  let check_action: DndAction = { AbilityCheck: { ability: fullSkillName(skillAbrev), total: roll.total!, d20_roll: d20_roll, character_name: actor.name!} };
+  const check_action: DndAction = { AbilityCheck: { ability: fullSkillName(skillAbrev), total: roll.total!, d20_roll: d20_roll, character_name: actor.name!} };
   await DiscordDungeonApi.postApiV1DndEvent({
     dnd_actions: [check_action]
   });
@@ -78,7 +78,7 @@ Hooks.on("dnd5e.rollAbilitySave", async function(actor: Actor, roll: Roll, skill
 
   console.log(`${actor.name} rolled a ${roll.total} on their ${skillAbrev} save!`);
   const d20_roll = roll.dice[0].results.filter(d => d.discarded === undefined || !d.discarded)[0].result;
-  let save_action: DndAction = { SavingThrow: { save: fullSkillName(skillAbrev), total: roll.total!, d20_roll: d20_roll, character_name: actor.name!} };
+  const save_action: DndAction = { SavingThrow: { save: fullSkillName(skillAbrev), total: roll.total!, d20_roll: d20_roll, character_name: actor.name!} };
   await DiscordDungeonApi.postApiV1DndEvent({
     dnd_actions: [save_action]
   });
