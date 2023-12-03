@@ -2,7 +2,7 @@
     "id": "discord-dungeon-foundry-vtt",
     "title": "Discord Dungeon VTT",
     "description": "Companion extension for the discord dungeon toolkit",
-    "version": "1.0.0",
+    "version": "{{VERSION}}",
     "compatibility": {
       "minimum": 11,
       "verified": 11
@@ -25,5 +25,8 @@
         "name": "English",
         "path": "lang/en.json"
       }
-    ]
+    ],
+    "url": "{{{URL}}}",
+    "manifest": "{{{MANIFEST}}}",
+    "download": "{{{DOWNLOAD}}}"
   }
