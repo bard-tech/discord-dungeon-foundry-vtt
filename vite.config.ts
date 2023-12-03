@@ -46,7 +46,7 @@ function BuildMoustacheTemplate(): Plugin {
       const templateVars = { 
         VERSION: process.env.VERSION ?? '1.0.0',
         URL: process.env.URL ?? 'http://example.com',
-        MANIFEST: process.env.MANIFIEST ?? 'manifest.json',
+        MANIFEST: process.env.MANIFEST ?? 'manifest.json',
         DOWNLOAD: process.env.DOWNLOAD ?? 'download.json' 
       };
       const renderedContent = Mustache.render(template.toString("utf8"), templateVars);
