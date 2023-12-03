@@ -3,7 +3,7 @@ import { registerSettings } from './settings';
 import { DndAction, currentUserIsSoundTriggeringUser, fullSkillName } from './util';
 
 Hooks.on("init", () => {
-  CONFIG.debug.hooks = true;
+  CONFIG.debug.hooks = false;
 });
 
 Hooks.on("ready", function() {
