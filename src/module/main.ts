@@ -10,7 +10,7 @@ type Item5e = Item & {
 }
 
 Hooks.on("init", () => {
-  CONFIG.debug.hooks = true;
+  CONFIG.debug.hooks = false;
 });
 
 Hooks.on("ready", function() {
