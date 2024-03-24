@@ -41,4 +41,13 @@ export function registerSettings(game: Game) {
     type: String,
     default: ""
   });
+
+  game.settings.register("discord-dungeon-foundry-vtt", "playing-enabled", {
+    name: "Play Sounds",
+    hint: "Uncheck to disable playing sounds. Useful to avoid spamming discord messages if you're testing without the bot.",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
+  });
 }
