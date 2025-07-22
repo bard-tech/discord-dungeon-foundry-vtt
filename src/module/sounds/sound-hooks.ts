@@ -1,5 +1,7 @@
-import { DndAction, fullSkillName } from "./util";
-import { DefaultService as DiscordDungeonApi } from "../generated/discord-dungeon-api";
+import { DndAction, fullSkillName } from "../util";
+import { SoundHandler } from "./sound-interface";
+import { DiscordSoundHandler } from "./discord-sound";
+import { FoundrySoundHandler } from "./foundry-sound";
 
 type Item5e = Item & {
   hasAttack: boolean;
@@ -13,6 +15,29 @@ function soundsEnabled() {
   const enabled = localGame.settings.get("discord-dungeon-foundry-vtt", "playing-enabled") as Boolean | undefined;
 
   return enabled ?? true;
+}
+
+let SOUND_HANDLER: SoundHandler;
+export function getSoundHandler() {
+  if (SOUND_HANDLER === undefined) {
+    initializeSoundHandler();
+  }
+
+  return SOUND_HANDLER
+}
+
+export function initializeSoundHandler() {
+  const localGame = game as Game;
+  const handlerType = localGame.settings.get("discord-dungeon-foundry-vtt", "backend") as String | undefined;
+  console.log(`Discord Dungeon VTT | Initializing ${handlerType} sound handler`)
+  switch (handlerType) {
+    case "bard-bot":
+      SOUND_HANDLER = new DiscordSoundHandler();
+      break;
+    case "foundry":
+      SOUND_HANDLER = new FoundrySoundHandler()
+      break;
+  }
 }
 
 export function registerSoundHooks() {
@@ -29,9 +54,7 @@ export function registerSoundHooks() {
       const action: DndAction = {
         Attack: { weapon: item.name!, attacker_name: item.actor?.name! },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
+      getSoundHandler().play([action])
       console.log(
         `Discord Dungeon VTT | An attack was made with a ${item.name}!`
       );
@@ -43,9 +66,7 @@ export function registerSoundHooks() {
       const action: DndAction = {
         Cast: { spell: item.name!, caster_name: item.actor?.name! },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
+      getSoundHandler().play([action])
       console.log(`Discord Dungeon VTT | ${item.name} was cast!`);
     }
   });
@@ -59,9 +80,7 @@ export function registerSoundHooks() {
       const action: DndAction = {
         Attack: { weapon: item.name!, attacker_name: item.actor?.name! },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
+      getSoundHandler().play([action])
       console.log(
         `Discord Dungeon VTT | An attack was made with a ${item.name}!`
       );
@@ -69,9 +88,7 @@ export function registerSoundHooks() {
       const action: DndAction = {
         Cast: { spell: item.name!, caster_name: item.actor?.name! },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
+      getSoundHandler().play([action])
       console.log(`Discord Dungeon VTT | ${item.name} was cast!`);
     }
 
@@ -83,9 +100,7 @@ export function registerSoundHooks() {
           attacker_name: item.actor?.name!,
         },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [rollAction],
-      });
+      getSoundHandler().play([rollAction])
     }
   });
 
@@ -103,9 +118,7 @@ export function registerSoundHooks() {
       const action: DndAction = {
         Attack: { weapon: item.name!, attacker_name: item.actor?.name! },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
+      getSoundHandler().play([action])
       console.log(
         `Discord Dungeon VTT | An attack was made with a ${item.name}!`
       );
@@ -118,9 +131,7 @@ export function registerSoundHooks() {
       const action: DndAction = {
         Cast: { spell: item.name!, caster_name: item.actor?.name! },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
+      getSoundHandler().play([action])
       console.log(`Discord Dungeon VTT | ${item.name} was cast!`);
     }
   });
@@ -143,9 +154,7 @@ export function registerSoundHooks() {
           character_name: actor.name!,
         },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [check_action],
-      });
+      getSoundHandler().play([check_action])
       console.log(
         `Discord Dungeon VTT | ${actor.name} rolled a ${roll.total} on their ${skillAbrev} skill!`
       );
@@ -170,9 +179,7 @@ export function registerSoundHooks() {
           character_name: actor.name!,
         },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [check_action],
-      });
+      getSoundHandler().play([check_action])
       console.log(
         `Discord Dungeon VTT | ${actor.name} rolled a ${roll.total} on their ${skillAbrev} skill!`
       );
@@ -197,9 +204,7 @@ export function registerSoundHooks() {
           character_name: actor.name!,
         },
       };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [save_action],
-      });
+      getSoundHandler().play([save_action])
       console.log(
         `Discord Dungeon VTT | ${actor.name} rolled a ${roll.total} on their ${skillAbrev} save!`
       );

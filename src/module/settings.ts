@@ -1,7 +1,7 @@
-import { debouncedReload } from './util';
+// import { debouncedReload } from './util';
 
 import { OpenAPI } from "../generated/discord-dungeon-api";
-
+import { initializeSoundHandler } from "./sounds/sound-hooks";
 
 export function registerSettings(game: Game) {
   game.settings.register("discord-dungeon-foundry-vtt", "api-key", {
@@ -25,11 +25,11 @@ export function registerSettings(game: Game) {
     type: String,
     choices: {
       "bard-bot": "Bard Bot",
-    //   "foundry": "Foundry"
+      "foundry": "Foundry"
     } as Record<string, string>,
     default: "bard-bot",
     onChange: _value => {
-      debouncedReload();
+      initializeSoundHandler()
     }
   });
 
