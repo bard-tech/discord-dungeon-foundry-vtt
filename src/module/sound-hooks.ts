@@ -10,7 +10,7 @@ type Item5e = Item & {
 
 function soundsEnabled() {
   const localGame = game as Game;
-  const enabled = localGame.settings.get("discord-dungeon-foundry-vtt", "playing-enabled") as Boolean | undefined;
+//  const enabled = localGame.settings.get("discord-dungeon-foundry-vtt", "playing-enabled") as Boolean | undefined;
 
   return enabled ?? true;
 }
@@ -29,6 +29,7 @@ export function registerSoundHooks() {
       const action: DndAction = {
         Attack: { weapon: item.name!, attacker_name: item.actor?.name! },
       };
+      console.log(action)
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
       });
@@ -50,12 +51,18 @@ export function registerSoundHooks() {
     }
   });
 
-  Hooks.on("dnd5e.rollAttack", async function (item: Item5e, roll: Roll) {
+  Hooks.on("dnd5e.rollAttack", async function (D20Rolls: Roll[], item: Item5e) {
     if (!soundsEnabled()) {
       return;
     }
+    console.log(
+        `Discord Dungeon VTT  saw an attack!`
+      );
 
     if (item.type === "weapon" && item.hasAttack) {
+      console.log(
+        `Discord Dungeon VTT  saw an attack with weapon!`
+      );
       const action: DndAction = {
         Attack: { weapon: item.name!, attacker_name: item.actor?.name! },
       };
