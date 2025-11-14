@@ -9,8 +9,8 @@ type Item5e = Item & {
 };
 
 function soundsEnabled() {
-  const localGame = game as Game;
-//  const enabled = localGame.settings.get("discord-dungeon-foundry-vtt", "playing-enabled") as Boolean | undefined;
+  const localGame = game as any;
+  const enabled = localGame.settings.get("discord-dungeon-foundry-vtt", "playing-enabled") as Boolean | undefined;
 
   return enabled ?? true;
 }
@@ -51,7 +51,7 @@ export function registerSoundHooks() {
     }
   });
 
-  Hooks.on("dnd5e.rollAttack", async function (D20Rolls: Roll[], item: Item5e) {
+  Hooks.on("dnd5e.rollAttack", async function (item: Item5e, roll: Roll) {
     if (!soundsEnabled()) {
       return;
     }
