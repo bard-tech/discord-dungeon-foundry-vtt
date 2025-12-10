@@ -1,12 +1,16 @@
 import { DndAction, fullSkillName } from "./util";
 import { DefaultService as DiscordDungeonApi } from "../generated/discord-dungeon-api";
-
+//Use type _____ = any;
+/*
 type Item5e = Item & {
   hasAttack: boolean;
   hasDamage: boolean;
   hasIndividualTarget: boolean;
   hasAreaTarget: boolean;
 };
+*/
+type Item5e = any;
+
 
 function soundsEnabled() {
   const localGame = game as any;
@@ -51,20 +55,22 @@ export function registerSoundHooks() {
     }
   });
 
-  Hooks.on("dnd5e.rollAttack", async function (item: Item5e, roll: Roll) {
+  Hooks.on("dnd5e.rollAttack", async function (D20Rolls: any, config: any) {
     if (!soundsEnabled()) {
       return;
     }
     console.log(
         `Discord Dungeon VTT  saw an attack!`
       );
-
+    const activity = config?.subject;
+    const item = activity?.item ?? activity?.parent ?? config?.item;
+    const actor = item?.actor ?? config?.actor ?? activity?.actor;
     if (item.type === "weapon" && item.hasAttack) {
       console.log(
         `Discord Dungeon VTT  saw an attack with weapon!`
       );
       const action: DndAction = {
-        Attack: { weapon: item.name!, attacker_name: item.actor?.name! },
+        Attack: { weapon: item.name!, attacker_name: actor.name! },
       };
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
@@ -74,20 +80,20 @@ export function registerSoundHooks() {
       );
     } else if (item.type === "spell" && item.hasAttack) {
       const action: DndAction = {
-        Cast: { spell: item.name!, caster_name: item.actor?.name! },
+        Cast: { spell: item.name!, caster_name: actor.name! },
       };
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
       });
       console.log(`Discord Dungeon VTT | ${item.name} was cast!`);
     }
-
+    const roll = Array.isArray(D20Rolls) ? D20Rolls[0] : D20Rolls;
     if (item.type === "weapon" || item.type === "spell") {
       const rollAction: DndAction = {
         AttackRoll: {
           total: roll.total!,
-          d20_roll: roll.dice[0].results[0].result,
-          attacker_name: item.actor?.name!,
+          d20_roll: roll.dice[0]?.results[0]?.result,
+          attacker_name: actor.name || "Unknown attacker",
         },
       };
       await DiscordDungeonApi.postApiV1DndEvent({
@@ -96,7 +102,7 @@ export function registerSoundHooks() {
     }
   });
 
-  Hooks.on("dnd5e.rollDamage", async function (item: Item5e, _roll: Roll) {
+  Hooks.on("dnd5e.rollDamage", async function (D20Rolls: any, item: any) {
     if (!soundsEnabled()) {
       return;
     }
@@ -128,7 +134,7 @@ export function registerSoundHooks() {
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
       });
-      console.log(`Discord Dungeon VTT | ${item.name} was cast!`);
+      console.log(`Discord Dungeon VTT | ${D20Rolls} ${item.name} was cast!`);
     }
   });
 
