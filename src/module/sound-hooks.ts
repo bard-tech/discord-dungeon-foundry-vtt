@@ -56,7 +56,7 @@ export function registerSoundHooks() {
     }
   });
 
-  Hooks.on("combatStart", async function (combat: any, config: any) {
+  Hooks.on("combatStart", async function () {
     if (!soundsEnabled()) {
       return;
     }
@@ -64,34 +64,33 @@ export function registerSoundHooks() {
         `Discord Dungeon VTT saw an Combat Start!`
       );
       const action: DndAction = "BeginInitiative";
-      combat;
-      config;
+
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
       });
     }
   );
-
-  Hooks.on("combatTurnChange", async function (combat: any, config: any) {
+  Hooks.on("combatTurnChange", async function (combat5e: any) {
     if (!soundsEnabled()) {
       return;
     }
     console.log(
         `Discord Dungeon VTT saw an Combat Turn change!`
       );
-      combat;
-      config;
+      const notStart = combat5e.previous.turn;
       const character_name = "phil"
-      const action: DndAction = {
-        NextInitiative: {character_name},
-      };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
+      if (notStart != null) {
+        const action: DndAction = {
+          NextInitiative: {character_name},
+        };
+        await DiscordDungeonApi.postApiV1DndEvent({
+          dnd_actions: [action],
+        });
+      }
+
     }
   );
-
-  Hooks.on("deleteCombat", async function (combat: any, config: any) {
+  Hooks.on("deleteCombat", async function () {
     if (!soundsEnabled()) {
       return;
     }
@@ -99,14 +98,12 @@ export function registerSoundHooks() {
         `Discord Dungeon VTT saw an Combat End!`
       );
       const action: DndAction = "EndInitiative";
-      combat;
-      config;
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
       });
     }
   );  
-  Hooks.on("dnd5e.rollInitiative", async function (actor5e: any, config: any) {
+  Hooks.on("dnd5e.rollInitiative", async function () {
     if (!soundsEnabled()) {
       return;
     }
@@ -117,8 +114,6 @@ export function registerSoundHooks() {
       const action: DndAction = {
         JoinInitiative: {character_name},
       };
-      actor5e;
-      config;
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
       });
