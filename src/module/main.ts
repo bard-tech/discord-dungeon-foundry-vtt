@@ -8,12 +8,14 @@ Hooks.on("init", () => {
 });
 
 Hooks.on("ready", function() {
+  console.log("In readay hook")
   const localGame = game as Game;
   registerSettings(localGame);
   const key = localGame.settings.get("discord-dungeon-foundry-vtt", "api-key") as string | undefined;
   if (key !== undefined && key !== "")  {
+    console.log("Made to If key")
     OpenAPI.TOKEN = key;
-    OpenAPI.BASE = import.meta.env.VITE_DISCORD_DUNGEON_BASE_URL;
+    OpenAPI.BASE ="http://localhost:3001";
   }
 });
 
