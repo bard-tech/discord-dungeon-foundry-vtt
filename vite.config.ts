@@ -60,7 +60,7 @@ function BuildMoustacheTemplate(): Plugin {
 export default defineConfig({
   plugins: [react(), WatchPublic(), BuildMoustacheTemplate()],
   build: {
-    lib: {"entry": "src/module/main.ts", "formats": ["iife"], "name": "main", "fileName": "main"},
+    lib: {"entry": "src/module/main.ts", "name": "main", "fileName": "main"},
     watch: {
       buildDelay: 1000,
     }
