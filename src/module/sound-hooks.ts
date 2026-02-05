@@ -11,148 +11,90 @@ type Item5e = Item & {
 };
 */
 
-
 function soundsEnabled() {
   const localGame = game as any;
-  const enabled = localGame.settings.get("discord-dungeon-foundry-vtt", "playing-enabled") as boolean | undefined;
+  const enabled = localGame.settings.get(
+    "discord-dungeon-foundry-vtt",
+    "playing-enabled",
+  ) as boolean | undefined;
 
   return enabled ?? true;
 }
 
 export function registerSoundHooks() {
-/*
-  Hooks.on("dnd5e.useItem", async function (item: Item5e) {
-    if (!soundsEnabled()) {
-      return;
-    }
-
-    if (
-      item.type === "weapon" &&
-      !item.hasAttack &&
-      (!item.hasDamage || item.hasAreaTarget)
-    ) {
-      const action: DndAction = {
-        Attack: { weapon: item.name!, attacker_name: item.actor.name! },
-      };
-      console.log(action)
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
-      console.log(
-        `Discord Dungeon VTT | An attack was made with a ${item.name}!`
-      );
-    } else if (
-      item.type === "spell" &&
-      !item.hasAttack &&
-      (!item.hasDamage || item.hasAreaTarget)
-    ) {
-      const action: DndAction = {
-        Cast: { spell: item.name!, caster_name: item.actor.name! },
-      };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
-      console.log(`Discord Dungeon VTT | ${item.name} was cast!`);
-    }
-  });
-*/
-
+ //Each hook on skill has been updated to newest dnd 5e on foundry
   Hooks.on("combatStart", async function () {
     if (!soundsEnabled()) {
       return;
     }
-    console.log(
-        `Discord Dungeon VTT saw an Combat Start!`
-      );
-      const action: DndAction = "BeginInitiative";
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
-    }
-  );
+    const action: DndAction = "BeginInitiative";
+    await DiscordDungeonApi.postApiV1DndEvent({
+      dnd_actions: [action],
+    });
+  });
 
   Hooks.on("combatTurnChange", async function (combat5e: any) {
     if (!soundsEnabled()) {
       return;
     }
-      const notStart = combat5e.previous.turn;
-      const character_name = combat5e.combatant.name
-      console.log(
-        `Discord Dungeon VTT saw a Combat Turn change to ${character_name}! `
-      );
-      if (notStart != null) {
-        const action: DndAction = {
-          NextInitiative: {character_name},
-        };
-        await DiscordDungeonApi.postApiV1DndEvent({
-          dnd_actions: [action],
-        });
-      }
-
+    const notStart = combat5e.previous.turn;
+    const character_name = combat5e.combatant.name;
+    if (notStart != null) {
+      const action: DndAction = {
+        NextInitiative: { character_name },
+      };
+      await DiscordDungeonApi.postApiV1DndEvent({
+        dnd_actions: [action],
+      });
     }
-  );
+  });
 
   Hooks.on("deleteCombat", async function () {
     if (!soundsEnabled()) {
       return;
     }
-    console.log(
-        `Discord Dungeon VTT saw an Combat End!`
-      );
-      const action: DndAction = "EndInitiative";
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
-    }
-  );
+    const action: DndAction = "EndInitiative";
+    await DiscordDungeonApi.postApiV1DndEvent({
+      dnd_actions: [action],
+    });
+  });
 
-  Hooks.on("dnd5e.rollInitiative", async function (Actor:any) {
+  Hooks.on("dnd5e.rollInitiative", async function (Actor: any) {
     if (!soundsEnabled()) {
       return;
     }
-      const character_name = Actor.name;
-      console.log(
-        `Discord Dungeon VTT saw an Initiative roll! from ${character_name}`
-        );
-      const action: DndAction = {
-        JoinInitiative: {character_name},
-      };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [action],
-      });
-    }
-  );
+    const character_name = Actor.name;
+    const action: DndAction = {
+      JoinInitiative: { character_name },
+    };
+    await DiscordDungeonApi.postApiV1DndEvent({
+      dnd_actions: [action],
+    });
+  });
 
   Hooks.on("dnd5e.rollAttack", async function (D20Rolls: any, config: any) {
     if (!soundsEnabled()) {
       return;
     }
-    console.log(
-        `Discord Dungeon VTT  saw an attack!`
-      );
+    console.log(`Discord Dungeon VTT  saw an attack!`);
     const activity = config.subject;
-    const item = activity.item ?? activity.parent ?? config.item;
-    const actor = item.actor ?? config.actor ?? activity.actor;
+    const item = activity.item;
     const weapon = item.name;
-    const attacker_name = actor.name;
+    const name = item.actor.name;
     if (item.type === "weapon" && item.hasAttack) {
       const action: DndAction = {
-        Attack: { weapon, attacker_name},
+        Attack: { weapon, attacker_name: name },
       };
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
       });
-      console.log(
-        `Discord Dungeon VTT | An attack by ${attacker_name} was made with a ${weapon}!`
-      );
     } else if (item.type === "spell" && item.hasAttack) {
       const action: DndAction = {
-        Cast: { spell: item.name!, caster_name: actor.name! },
+        Cast: { spell: item.name!, caster_name: name! },
       };
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
       });
-      console.log(`Discord Dungeon VTT | ${item.name} was cast by ${attacker_name}!`);
     }
     const roll = Array.isArray(D20Rolls) ? D20Rolls[0] : D20Rolls;
     if (item.type === "weapon" || item.type === "spell") {
@@ -160,97 +102,54 @@ export function registerSoundHooks() {
         AttackRoll: {
           total: roll.total!,
           d20_roll: roll.dice[0].results[0].result,
-          attacker_name: actor.name || "Unknown attacker",
+          attacker_name: name || "Unknown attacker",
         },
       };
-      console.log(
-        `Discord Dungeon VTT | The roll was ${roll.dice[0]?.results[0]?.result}!`
-      );
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [rollAction],
       });
     }
   });
 
-
-  Hooks.on(
-    "dnd5e.rollSkill",
-    async function (actor: Actor, roll: Roll, skillAbrev: string) {
-      if (!soundsEnabled()) {
+  Hooks.on("dnd5e.rollSkill", async function (D20Rolls: any, config: any) {
+    if (!soundsEnabled()) {
         return;
-      }
-
-      const d20_roll = roll.dice[0].results.filter(
-        (d) => d.discarded === undefined || !d.discarded
-      )[0].result;
-      const check_action: DndAction = {
-        AbilityCheck: {
-          ability: fullSkillName(skillAbrev),
-          total: roll.total!,
-          d20_roll: d20_roll,
-          character_name: actor.name!,
-        },
-      };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [check_action],
-      });
-      console.log(
-        `Discord Dungeon VTT | ${actor.name} rolled a ${roll.total} on their ${skillAbrev} skill!`
-      );
     }
-  );
+    const activity = config.subject;
+    const skillAbrev = config.skill;
+    const name = activity.name;
+    const roll = Array.isArray(D20Rolls) ? D20Rolls[0] : D20Rolls;
+    const check_action: DndAction = {
+      AbilityCheck: {
+        ability: fullSkillName(skillAbrev),
+        total: roll.total!,
+        d20_roll: roll.dice[0].results[0].result,
+        character_name: name!,
+      },
+    };
+    await DiscordDungeonApi.postApiV1DndEvent({
+      dnd_actions: [check_action],
+    });
+  });
 
-  Hooks.on(
-    "dnd5e.rollAbilityTest",
-    async function (actor: Actor, roll: Roll, skillAbrev: string) {
-      if (!soundsEnabled()) {
-        return;
-      }
-
-      const d20_roll = roll.dice[0].results.filter(
-        (d) => d.discarded === undefined || !d.discarded
-      )[0].result;
-      const check_action: DndAction = {
-        AbilityCheck: {
-          ability: fullSkillName(skillAbrev),
-          total: roll.total!,
-          d20_roll: d20_roll,
-          character_name: actor.name!,
-        },
-      };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [check_action],
-      });
-      console.log(
-        `Discord Dungeon VTT | ${actor.name} rolled a ${roll.total} on their ${skillAbrev} skill!`
-      );
+  Hooks.on("dnd5e.rollSavingThrow", async function (D20Rolls: any, config: any) {
+    if (!soundsEnabled()) {
+      return;
     }
-  );
-
-  Hooks.on(
-    "dnd5e.rollAbilitySave",
-    async function (actor: Actor, roll: Roll, skillAbrev: string) {
-      if (!soundsEnabled()) {
-        return;
-      }
-
-      const d20_roll = roll.dice[0].results.filter(
-        (d) => d.discarded === undefined || !d.discarded
-      )[0].result;
-      const save_action: DndAction = {
-        SavingThrow: {
-          save: fullSkillName(skillAbrev),
-          total: roll.total!,
-          d20_roll: d20_roll,
-          character_name: actor.name!,
-        },
-      };
-      await DiscordDungeonApi.postApiV1DndEvent({
-        dnd_actions: [save_action],
-      });
-      console.log(
-        `Discord Dungeon VTT | ${actor.name} rolled a ${roll.total} on their ${skillAbrev} save!`
-      );
-    }
-  );
+    const activity = config.subject;
+    const skillAbrev = config.ability;
+    const name = activity.name;
+    const roll = Array.isArray(D20Rolls) ? D20Rolls[0] : D20Rolls;
+    const save_action: DndAction = {
+      SavingThrow: {
+        save: fullSkillName(skillAbrev),
+        total: roll.total!,
+        d20_roll: roll.dice[0].results[0].result,
+        character_name: name!,
+      },
+    };
+    await DiscordDungeonApi.postApiV1DndEvent({
+      dnd_actions: [save_action],
+    });
+  });
 }
