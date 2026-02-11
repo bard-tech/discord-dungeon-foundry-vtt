@@ -1,16 +1,5 @@
 import { DndAction, fullSkillName } from "./util";
 import { DefaultService as DiscordDungeonApi } from "../generated/discord-dungeon-api";
-//import { D20Roll } from "foundryvtt-dnd5e-types";
-//Use type _____ = any;
-/*
-type Item5e = Item & {
-  hasAttack: boolean;
-  hasDamage: boolean;
-  hasIndividualTarget: boolean;
-  hasAreaTarget: boolean;
-};
-*/
-
 function soundsEnabled() {
   const localGame = game as any;
   const enabled = localGame.settings.get(
@@ -22,7 +11,7 @@ function soundsEnabled() {
 }
 
 export function registerSoundHooks() {
- //Each hook on skill has been updated to newest dnd 5e on foundry
+
   Hooks.on("combatStart", async function () {
     if (!soundsEnabled()) {
       return;
@@ -37,9 +26,9 @@ export function registerSoundHooks() {
     if (!soundsEnabled()) {
       return;
     }
-    const notStart = combat5e.previous.turn;
+    const isNotFirstTurn = combat5e.previous.turn !== null;
     const character_name = combat5e.combatant.name;
-    if (notStart != null) {
+    if (isNotFirstTurn === true) {
       const action: DndAction = {
         NextInitiative: { character_name },
       };
@@ -59,11 +48,11 @@ export function registerSoundHooks() {
     });
   });
 
-  Hooks.on("dnd5e.rollInitiative", async function (Actor: any) {
+  Hooks.on("dnd5e.rollInitiative", async function (actor: any) {
     if (!soundsEnabled()) {
       return;
     }
-    const character_name = Actor.name;
+    const character_name = actor.name;
     const action: DndAction = {
       JoinInitiative: { character_name },
     };
@@ -72,18 +61,16 @@ export function registerSoundHooks() {
     });
   });
 
-  Hooks.on("dnd5e.rollAttack", async function (D20Rolls: any, config: any) {
+  Hooks.on("dnd5e.rollAttack", async function (D20Rolls: any, attackInfo: any) {
     if (!soundsEnabled()) {
       return;
     }
-    console.log(`Discord Dungeon VTT  saw an attack!`);
-    const activity = config.subject;
+    const activity = attackInfo.subject;
     const item = activity.item;
-    const weapon = item.name;
     const name = item.actor.name;
     if (item.type === "weapon" && item.hasAttack) {
       const action: DndAction = {
-        Attack: { weapon, attacker_name: name },
+        Attack: { weapon: item.name, attacker_name: name },
       };
       await DiscordDungeonApi.postApiV1DndEvent({
         dnd_actions: [action],
@@ -101,8 +88,8 @@ export function registerSoundHooks() {
       const rollAction: DndAction = {
         AttackRoll: {
           total: roll.total!,
-          d20_roll: roll.dice[0].results[0].result,
-          attacker_name: name || "Unknown attacker",
+          d20_roll: roll.dice[0].total,
+          attacker_name: name!,
         },
       };
       await DiscordDungeonApi.postApiV1DndEvent({
@@ -111,19 +98,18 @@ export function registerSoundHooks() {
     }
   });
 
-  Hooks.on("dnd5e.rollSkill", async function (D20Rolls: any, config: any) {
+  Hooks.on("dnd5e.rollSkill", async function (D20Rolls: any, skillInfo: any) {
     if (!soundsEnabled()) {
         return;
     }
-    const activity = config.subject;
-    const skillAbrev = config.skill;
-    const name = activity.name;
+    const skillAbrev = skillInfo.skill;
+    const name = skillInfo.subject.name;
     const roll = Array.isArray(D20Rolls) ? D20Rolls[0] : D20Rolls;
     const check_action: DndAction = {
       AbilityCheck: {
         ability: fullSkillName(skillAbrev),
         total: roll.total!,
-        d20_roll: roll.dice[0].results[0].result,
+        d20_roll: roll.dice[0].total,
         character_name: name!,
       },
     };
@@ -132,19 +118,18 @@ export function registerSoundHooks() {
     });
   });
 
-  Hooks.on("dnd5e.rollSavingThrow", async function (D20Rolls: any, config: any) {
+  Hooks.on("dnd5e.rollSavingThrow", async function (D20Rolls: any, saveInfo: any) {
     if (!soundsEnabled()) {
       return;
     }
-    const activity = config.subject;
-    const skillAbrev = config.ability;
-    const name = activity.name;
+    const skillAbrev = saveInfo.ability;
+    const name = saveInfo.subject.name;
     const roll = Array.isArray(D20Rolls) ? D20Rolls[0] : D20Rolls;
     const save_action: DndAction = {
       SavingThrow: {
         save: fullSkillName(skillAbrev),
         total: roll.total!,
-        d20_roll: roll.dice[0].results[0].result,
+        d20_roll: roll.dice[0].total,
         character_name: name!,
       },
     };
