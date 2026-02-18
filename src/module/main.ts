@@ -14,6 +14,7 @@ Hooks.on("ready", function() {
   if (key !== undefined && key !== "")  {
     OpenAPI.TOKEN = key;
     OpenAPI.BASE = import.meta.env.VITE_DISCORD_DUNGEON_BASE_URL;
+    //OpenAPI.BASE ="http://localhost:3001"; for local set up.
   }
 });
 
