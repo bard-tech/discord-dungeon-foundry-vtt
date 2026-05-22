@@ -34,11 +34,6 @@ Hooks.once("init", () => {
   });
 });
 
-Hooks.once("ready", () => {
-
-});
-
-
 function showApiKeyDialog(game: Game) {
   new Dialog({
     title: "Enter API Key",
@@ -67,7 +62,10 @@ function showApiKeyDialog(game: Game) {
     },
   }).render(true);
 }
-
+/*ok, so for now we have a button that lets clients enter their API key, but i dont think this is doing anything. 
+Unless we can have that Game session manager come over here and play sounds in this area. Or at the very least,
+we can have it make a game session by ID instead of by discord
+*/
 
 
 
