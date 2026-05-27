@@ -3,11 +3,14 @@ import { debouncedReload } from './util';
 import { OpenAPI } from "../generated/discord-dungeon-api";
 
 
+
+
+
 export function registerSettings(game: Game) {
   game.settings.register("discord-dungeon-foundry-vtt", "api-key", {
     name: "API Key",
     hint: "The discord dungeon api key.",
-    scope: "world",
+    scope: "client",
     config: true,
     type: String,
     default: "",
@@ -32,7 +35,7 @@ export function registerSettings(game: Game) {
       debouncedReload();
     }
   });
-
+//Hey this is the thing that tells who triggers what. . .LOOK INTO THIS"
   game.settings.register("discord-dungeon-foundry-vtt", "sound-triggering-user", {
     name: "Sound Triggering User",
     hint: "User who will send sounds to the discord dungeon API",
