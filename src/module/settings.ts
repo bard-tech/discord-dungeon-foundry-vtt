@@ -10,13 +10,13 @@ export function registerSettings(game: Game) {
   game.settings.register("discord-dungeon-foundry-vtt", "api-key", {
     name: "API Key",
     hint: "The discord dungeon api key.",
-    scope: "client",
+    scope: "client", // Yeah so it doesnt work if we have one world and one client.
     config: true,
     type: String,
     default: "",
-    onChange: _value => {
+    onChange: () => {
       game.settings.set("discord-dungeon-foundry-vtt", "sound-triggering-user", game.user?.id);
-      // Per https://foundryvtt.wiki/en/development/api/settings this is safer than using the value passed in
+      // Per https://foundryvtt.wiki/en/development/api/settings this is safer than using the value passed in 
       OpenAPI.TOKEN = game.settings.get("discord-dungeon-foundry-vtt", "api-key") as string;
     }
   });
@@ -31,7 +31,7 @@ export function registerSettings(game: Game) {
     //   "foundry": "Foundry"
     } as Record<string, string>,
     default: "bard-bot",
-    onChange: _value => {
+    onChange: () => {
       debouncedReload();
     }
   });

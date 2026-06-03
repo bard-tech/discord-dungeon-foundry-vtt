@@ -7,32 +7,25 @@ Hooks.on("init", () => {
   CONFIG.debug.hooks = false;
 });
 
+
 Hooks.on("ready", function() {
   const localGame = game as Game;
   registerSettings(localGame);
+  //OpenAPI.BASE = import.meta.env.VITE_DISCORD_DUNGEON_BASE_URL;
+  OpenAPI.BASE = "http://localhost:3001";
   const key = localGame.settings.get("discord-dungeon-foundry-vtt", "api-key") as string | undefined;
   if (key !== undefined && key !== "")  {
     OpenAPI.TOKEN = key;
-    //OpenAPI.BASE = import.meta.env.VITE_DISCORD_DUNGEON_BASE_URL;
-    OpenAPI.BASE ="http://localhost:3001"; //for local set up.
   }
-  if (localGame.user?.isGM) return;
-  if (key) return;
-  showApiKeyDialog(localGame);
+  if (!key) {
+    showApiKeyDialog(localGame);
+  }
+  if (localGame.user.isGM) {
+    registerGameSessionHooksGM(localGame, localGame.user, true)
+  }
+  registerGameSessionHooks(localGame);
 });
 
-
-
-Hooks.once("init", () => {
-  const localGame = game as Game;
-  localGame.settings.register("discord-dungeon-foundry-vtt", "api-key", {
-    name: "API Key",
-    hint: "API key.",
-    scope: "client",
-    config: true,
-    default: ""
-  });
-});
 
 function showApiKeyDialog(game: Game) {
   new Dialog({
@@ -62,11 +55,156 @@ function showApiKeyDialog(game: Game) {
     },
   }).render(true);
 }
-/*ok, so for now we have a button that lets clients enter their API key, but i dont think this is doing anything. 
-Unless we can have that Game session manager come over here and play sounds in this area. Or at the very least,
-we can have it make a game session by ID instead of by discord
-*/
 
+
+async function registerGameSessionHooksGM(localGame: Game, user: User, connected: boolean) {
+    if (!localGame.user?.isGM) return;
+    if (!isPrimaryActiveGM(localGame)) return;
+    const key = localGame.settings.get("discord-dungeon-foundry-vtt", "api-key") as string | undefined;
+    if (!key) {
+      console.warn("Cannot log game session event: missing API key.");
+      return;
+    }
+    OpenAPI.TOKEN = key;
+    OpenAPI.BASE = "http://localhost:3001";
+    try {
+      if (connected) {
+        await createGameSession(localGame, user, key);
+      } else {
+        await updateGameSession(localGame, user, key);
+      }
+    } catch (error) {
+      console.error("Failed to log Foundry game session event:", error);
+    }
+}
+
+
+function registerGameSessionHooks(localGame: Game) {
+  Hooks.on("userConnected", async (user: User, connected: boolean) => {
+    if (!localGame.user?.isGM) return;
+    if (!isPrimaryActiveGM(localGame)) return;
+    const key = localGame.settings.get("discord-dungeon-foundry-vtt", "api-key") as string | undefined;
+    if (!key) {
+      console.warn("Cannot log game session event: missing API key.");
+      return;
+    }
+    OpenAPI.TOKEN = key;
+    OpenAPI.BASE = "http://localhost:3001";
+    try {
+      if (connected) {
+        await createGameSession(localGame, user, key);
+      } else {
+        await updateGameSession(localGame, user, key);
+      }
+    } catch (error) {
+      console.error("Failed to log Foundry game session event:", error);
+    }
+  });
+}
+
+
+function isPrimaryActiveGM(localGame: Game): boolean {
+  const activeGms = localGame.users
+    ?.filter((u: User) => u.isGM && u.active)
+    .sort((a: User, b: User) => a.id.localeCompare(b.id));
+
+  return activeGms?.[0]?.id === localGame.user?.id;
+}
+
+
+async function createGameSession(
+  localGame: Game,
+  user: User,
+  apiKey: string
+): Promise<void> {
+  const payload = {
+    foundry_user_id: user.id,
+    foundry_user_name: user.name,
+    foundry_world_id: localGame.world.id,
+    foundry_world_name: (localGame.world as unknown as { title: string }).title,  //This title property works but for some reason is not recognized by my code. EDIT: this fixing it? thanks GPT.
+    joined_at: new Date().toISOString(),
+    key: apiKey
+  };
+  console.log("Sending create game session payload:", payload);
+  const response = await fetch(`${OpenAPI.BASE}/api/v1/game-sessions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Create game session failed response:", errorText);
+
+    throw new Error(
+      `Create game session failed: ${response.status} ${response.statusText} - ${errorText}`
+    );
+  }
+  const data = await response.json() as CreateGameSessionResponse;
+  const sessionIds = getStoredGameSessionIds(localGame);
+  sessionIds[user.id] = data.id;
+  setStoredGameSessionIds(localGame, sessionIds);
+  console.log(`Logged join for ${user.name}. Game session id: ${data.id}`);
+}
+
+
+type CreateGameSessionResponse = {
+  id: string;
+};
+
+
+async function updateGameSession(
+  localGame: Game,
+  user: User,
+  apiKey: string
+): Promise<void> {
+  const sessionIds = getStoredGameSessionIds(localGame);
+  const sessionId = sessionIds[user.id];
+  if (!sessionId) {
+    console.warn(`No stored game session id found for ${user.name}; cannot log leave event.`);
+    return;
+  }
+  const response = await fetch(`${OpenAPI.BASE}/api/v1/game-sessions/${sessionId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      left_at: new Date().toISOString(),
+      status: "disconnected"
+    })
+  });
+if (!response.ok) {
+  const errorText = await response.text();
+  console.error("Create game session failed response:", errorText);
+  throw new Error(
+    `Create game session failed: ${response.status} ${response.statusText} - ${errorText}`
+  );
+}
+  delete sessionIds[user.id];
+  setStoredGameSessionIds(localGame, sessionIds);
+  console.log(`Logged leave for ${user.name}. Game session id: ${sessionId}`);
+}
+
+
+function getStoredGameSessionIds(localGame: Game): Record<string, string> {
+  const worldId = localGame.world?.id ?? "unknown-world";
+  const storageKey = `${"discord-dungeon-foundry-vtt"}.game-session-ids.${worldId}`;
+  return JSON.parse(localStorage.getItem(storageKey) ?? "{}");
+}
+
+
+function setStoredGameSessionIds(
+  localGame: Game,
+  sessionIds: Record<string, string>
+): void {
+  const worldId = localGame.world?.id ?? "unknown-world";
+  const storageKey = `${"discord-dungeon-foundry-vtt"}.game-session-ids.${worldId}`;
+  localStorage.setItem(storageKey, JSON.stringify(sessionIds));
+}
 
 
 registerSoundHooks();
