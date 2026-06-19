@@ -16,7 +16,7 @@ export function registerSettings(game: Game) {
     default: "",
     onChange: () => {
       game.settings.set("discord-dungeon-foundry-vtt", "sound-triggering-user", game.user?.id);
-      // Per https://foundryvtt.wiki/en/development/api/settings this is safer than using the value passed in 
+      // Per https://foundryvtt.wiki/en/development/api/settings this is safer than using the value passed in
       OpenAPI.TOKEN = game.settings.get("discord-dungeon-foundry-vtt", "api-key") as string;
     }
   });
