@@ -14,7 +14,7 @@ export function registerSettings(game: Game) {
     config: true,
     type: String,
     default: "",
-    onChange: _value => {
+    onChange: () => {
       game.settings.set("discord-dungeon-foundry-vtt", "sound-triggering-user", game.user?.id);
       // Per https://foundryvtt.wiki/en/development/api/settings this is safer than using the value passed in
       OpenAPI.TOKEN = game.settings.get("discord-dungeon-foundry-vtt", "api-key") as string;
@@ -31,11 +31,11 @@ export function registerSettings(game: Game) {
     //   "foundry": "Foundry"
     } as Record<string, string>,
     default: "bard-bot",
-    onChange: _value => {
+    onChange: () => {
       debouncedReload();
     }
   });
-//Hey this is the thing that tells who triggers what. . .LOOK INTO THIS"
+
   game.settings.register("discord-dungeon-foundry-vtt", "sound-triggering-user", {
     name: "Sound Triggering User",
     hint: "User who will send sounds to the discord dungeon API",
