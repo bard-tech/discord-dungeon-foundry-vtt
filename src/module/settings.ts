@@ -7,6 +7,19 @@ import { OpenAPI } from "../generated/discord-dungeon-api";
 
 
 export function registerSettings(game: Game) {
+  game.settings.register("discord-dungeon-foundry-vtt", "GM api-key", {
+    name: "Master API Key",
+    hint: "The discord dungeon master api key.",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "",
+    onChange: () => {
+      game.settings.set("discord-dungeon-foundry-vtt", "sound-triggering-user", game.user?.id);
+      // Per https://foundryvtt.wiki/en/development/api/settings this is safer than using the value passed in 
+      OpenAPI.TOKEN = game.settings.get("discord-dungeon-foundry-vtt", "GM api-key") as string;
+    }
+  });
   game.settings.register("discord-dungeon-foundry-vtt", "api-key", {
     name: "API Key",
     hint: "The discord dungeon api key.",
@@ -35,7 +48,6 @@ export function registerSettings(game: Game) {
       debouncedReload();
     }
   });
-
   game.settings.register("discord-dungeon-foundry-vtt", "sound-triggering-user", {
     name: "Sound Triggering User",
     hint: "User who will send sounds to the discord dungeon API",
